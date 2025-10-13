@@ -2,12 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
-import fs from 'fs'; 
-import dotenv from 'dotenv'; // Aseguramos el import de dotenv
-
-// Cargar variables de entorno desde .env (esencial para desarrollo local)
-dotenv.config();
-
+import fs from 'fs'; // Mantenemos fs y path por ahora para la carga de credenciales
 // Importar el Router que contiene todas las rutas de Google
 import googleRouter from './routes/googleRoutes.js'; 
 
@@ -22,15 +17,16 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de Archivos Estáticos (sirve toda la carpeta raíz del proyecto)
-
-app.use(express.static(path.join(__dirname, '/public'))); // Opcional: servir una carpeta 'public' dentro de 'src'
+// Configuración de Archivos Estáticos
 app.use(express.static(path.join(__dirname, '..')));
+
 // Configuración del Motor de Plantillas EJS
 // ----------------------------------------------------
-// SOLUCIÓN AL ERROR EN RENDER: Usamos process.cwd() para encontrar la ruta absoluta 'src/views'
-app.set('views', path.join(__dirname, '..', 'views')); 
-app.set('view engine', 'ejs');
+// Apunta a la carpeta 'views' en la raíz del proyecto
+app    
+    .use(express.static(__dirname + '/public'))
+    .set("views", path.join(__dirname, "/views"))
+    .set("view engine", "ejs")
 
 // Session
 // ----------------------------------------------------
@@ -38,11 +34,6 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
     saveUninitialized: false,
-    cookie: { 
-        secure: process.env.NODE_ENV === 'production', // true en producción (HTTPS)
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 // 24 horas
-    }
 }));
 
 
@@ -74,39 +65,9 @@ app.get('/', (req, res) => {
 app.use('/', googleRouter);
 
 
-// Manejo centralizado de errores (MUY IMPORTANTE)
-app.use((err, req, res, next) => {
-    console.error('ERROR DEL SERVIDOR:', err.stack);
-
-    const errorMessage = err.message || 'Error interno del servidor.';
-    const errorTitle = err.message.includes('No se encontraron credenciales') 
-        ? 'Error de Configuración de Credenciales' 
-        : 'Error';
-
-    // Ahora debería encontrar la vista 'error.ejs'
-    res.status(err.status || 500).render('error', { 
-        title: errorTitle, 
-        error: errorMessage 
-    });
-});
-
-
 // Rutas de prueba (opcional)
 app.get('/status', (req, res) => {
     res.json({ status: 'ok', router_mounted: true });
 });
 
-// La exportación para que pueda ser iniciado externamente si se desea
-export default app; 
-
-const PORT = process.env.PORT || 3000;
-const hostUrl = process.env.HOST_URL || `http://localhost:${PORT}`;
-
-// Solo iniciamos el servidor si este módulo es el principal
-if (import.meta.url === `file://${process.argv[1]}`) {
-    app.listen(PORT, () => {
-        console.log(`Servidor corriendo en ${hostUrl}`); 
-        // Verificamos si la clave de Google está disponible
-        console.log(`CLIENT_ID disponible: ${!!process.env.GOOGLE_CLIENT_ID}`); 
-    });
-}
+export default app;
