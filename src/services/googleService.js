@@ -12,8 +12,15 @@ let CREDENTIALS = null;
 const credPath = path.join(__dirname, '..', '..', 'credentials.json');
 if (fs.existsSync(credPath)) {
     CREDENTIALS = JSON.parse(fs.readFileSync(credPath, 'utf8'));
-} else if (process.env.CLIENT_ID && process.env.CLIENT_SECRET) {
-    CREDENTIALS = { web: { client_id: process.env.CLIENT_ID, client_secret: process.env.CLIENT_SECRET, redirect_uris: [process.env.REDIRECT_URI || 'http://localhost:3000/auth/google/callback'] } };
+} else if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Importante: Usamos GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET para coincidir con el estándar
+    // de las variables de entorno que configuraste en Render.
+    CREDENTIALS = { web: { 
+        client_id: process.env.GOOGLE_CLIENT_ID, 
+        client_secret: process.env.GOOGLE_CLIENT_SECRET, 
+        // El redirect_uris por defecto ahora es una plantilla local segura, pero será SOBREESCRITO.
+        redirect_uris: [process.env.HOST_URL ? `${process.env.HOST_URL}/auth/google/callback` : 'http://localhost:3000/auth/google/callback'] 
+    }};
 }
 
 let SERVICE_ACCOUNT = null;
@@ -25,7 +32,7 @@ if (fs.existsSync(saPath)) {
 // Scopes necesarios para Drive y Sheets (lectura/escritura)
 export const DRIVE_SCOPES = [
     'https://www.googleapis.com/auth/drive.metadata.readonly',
-    'https://www.googleapis.com/auth/spreadsheets' 
+    'https://www.googleapis.com/auth/spreadsheets' // Necesario para Sheets
 ];
 
 // --- NUEVOS SCOPES Y ARREGLO COMBINADO (CAMBIOS AÑADIDOS) ---
@@ -48,11 +55,29 @@ export const ALL_SCOPES = [
 
 export function getOAuth2Client(req) {
     if (!CREDENTIALS) throw new Error('No se encontraron credenciales de Google (credentials.json o variables de entorno)');
-    const { client_id, client_secret, redirect_uris } = CREDENTIALS.web;
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-    if (req.session.tokens) {
+    
+    const { client_id, client_secret } = CREDENTIALS.web;
+    
+    // --- LÓGICA DE REDIRECCIÓN CONDICIONAL (SOLUCIÓN DEL PROBLEMA) ---
+    let redirectUri;
+    
+    // 1. Priorizar la URL de Render si estamos en Producción y HOST_URL existe
+    if (process.env.NODE_ENV === 'production' && process.env.HOST_URL) {
+        // Usamos la URL pública (HTTPS) configurada en Render
+        redirectUri = `${process.env.HOST_URL}/auth/google/callback`;
+    } else {
+        // 2. Usar la configuración local o la primera URL de las credenciales (por defecto)
+        const defaultPort = process.env.PORT || 3000;
+        redirectUri = `http://localhost:${defaultPort}/auth/google/callback`;
+    }
+    // FIN LÓGICA DE REDIRECCIÓN CONDICIONAL
+    
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirectUri);
+    
+    if (req.session && req.session.tokens) {
         oAuth2Client.setCredentials(req.session.tokens);
     }
+    
     return oAuth2Client;
 }
 
@@ -70,7 +95,7 @@ export async function getAuthClient(req) {
     if (SERVICE_ACCOUNT) {
         const auth = new google.auth.GoogleAuth({
             credentials: SERVICE_ACCOUNT,
-            scopes: DRIVE_SCOPES,
+            scopes: ALL_SCOPES, // Usamos ALL_SCOPES para incluir permisos de Sheets
         });
         const client = await auth.getClient();
         return client;
