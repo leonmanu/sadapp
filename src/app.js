@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, '..')));
 // Configuración del Motor de Plantillas EJS
 // ----------------------------------------------------
 // SOLUCIÓN AL ERROR EN RENDER: Usamos process.cwd() para encontrar la ruta absoluta 'src/views'
-app.set('views', path.join(__dirname, '..', '..', 'views')); 
+app.set('views', path.join(__dirname, '..', 'views')); 
 app.set('view engine', 'ejs');
 
 // Session
