@@ -17,8 +17,6 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de Archivos Estáticos
-app.use(express.static(path.join(__dirname, '..')));
 
 // Configuración del Motor de Plantillas EJS
 // ----------------------------------------------------
