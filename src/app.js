@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 // Apunta a la carpeta 'views' en la raíz del proyecto
 app    
     .use(express.static(__dirname + '/public'))
-    .set("views", path.join(__dirname, "../views"))
+    .set("views", path.join(__dirname, "views"))
     .set("view engine", "ejs")
 
 // Session
