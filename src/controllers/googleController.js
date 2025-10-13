@@ -14,7 +14,7 @@ export const handleGoogleAuth = (req, res) => {
         });
         res.redirect(authUrl);
     } catch (err) {
-        res.status(500).render('error', { error: err.message, title: 'Error de Autenticación' });
+        res.status(500).render('pages/error', { error: err.message, title: 'Error de Autenticación' });
     }
 };
 
@@ -36,7 +36,7 @@ export const handleGoogleCallback = async (req, res) => {
         // Redirigir a la página principal de búsqueda
         res.redirect('/drive/search'); 
     } catch (err) {
-        res.status(500).render('error', { error: `Error al intercambiar token o cargar perfil: ${err.message}`, title: 'Error de Token' });
+        res.status(500).render('pages/error', { error: `Error al intercambiar token o cargar perfil: ${err.message}`, title: 'Error de Token' });
     }
 };
 
@@ -62,7 +62,7 @@ export const searchDrive = async (req, res) => {
 
     } catch (err) {
         // En caso de error, renderiza una vista de error (asumiendo que views/error.ejs existe)
-        res.status(500).render('pages/error', { 
+        res.status(500).render('pages/, { 
             error: `Error en búsqueda: ${err.message}. ${!req.session.tokens ? 'Por favor, autentíquese de nuevo.' : ''}`, 
             title: 'Error de Drive' 
         });
