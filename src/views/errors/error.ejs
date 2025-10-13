@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title><%= title %></title>
+<style>
+body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; color: #c43333; }
+.container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #c43333; }
+h1 { color: #c43333; }
+pre { background-color: #eee; padding: 10px; border-radius: 4px; white-space: pre-wrap; word-break: break-all; }
+a { color: #1a73e8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>¡Oops! Ha ocurrido un error: <%= title %></h1>
+<p>Detalles:</p>
+<pre><%= error %></pre>
+<p><a href="/">Volver a la página principal</a></p>
+</div>
+</body>
+</html>

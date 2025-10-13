@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJdZfR72Ua1kR0p83gXkXQ8+D6C7S6A8l9A/0+Cg6E1/w0n9+g6F8+lQz7rL5Vw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .custom-container {
+            max-width: 900px;
+            margin: auto;
+        }
+        /* Añade padding superior al cuerpo para evitar que el contenido se esconda detrás de la Navbar fija */
+        body {
+            padding-top: 70px; 
+        }
+        .text-custom-small {
+            font-size: 0.8em;
+            color: #adb5bd !important;
+        }
+    </style>
+</head>
+<body class="bg-dark text-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
+        <div class="container-fluid custom-container">
+            <a class="navbar-brand text-primary fw-bold" href="/"><%= title %></a>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <% 
+                    // Solución segura para evitar el "ReferenceError"
+                    const isUserLoggedIn = (typeof googleUser !== 'undefined' && googleUser);
+                    %>
+
+                    <% if (isUserLoggedIn) { %>
+                        <li class="nav-item d-flex align-items-center me-3">
+                            <% if (googleUser.picture) { %>
+                                <img src="<%= googleUser.picture %>" class="rounded-circle me-2" alt="<%= googleUser.name %>" width="35" height="35">
+                            <% } %>
+                            <span class="navbar-text text-light me-2">
+                                <%= googleUser.name %>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-danger btn-sm" href="/auth/logout">Cerrar Sesión</a>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="btn btn-primary" href="/auth/google">Iniciar Sesión con Google</a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4 p-4 rounded shadow custom-container bg-body-tertiary">
+        <h1 class="visually-hidden"><%= title %></h1> 
+        <div class="p-3 mb-4 rounded border border-secondary bg-dark">
+            <form action="/drive/search" method="GET" class="d-flex flex-wrap align-items-center">
+                <input type="text" name="q" placeholder="Buscar por nombre o contenido (ej: Informe)" value="<%= query %>" class="form-control me-2 mb-2 mb-md-0 flex-grow-1" style="max-width: 400px;">
+                <input type="text" name="folderId" placeholder="ID de Carpeta (Opcional)" value="<%= folderId %>" class="form-control me-2 mb-2 mb-md-0" style="width: 200px;">
+                <button type="submit" class="btn btn-primary">Buscar en Drive</button>
+            </form>
+        </div>
+
+        <% if (files && files.length > 0) { %>
+            <h2 class="h4 mt-4 mb-3">Archivos Encontrados: (<%= files.length %>)</h2>
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Tipo MIME</th>
+                            <th scope="col">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% files.forEach(function(file) { %>
+                            <tr>
+    <td><%= file.name %></td>
+    
+    <td>
+        <% 
+            let mimeTypeSvg = ''; // Inicializamos la variable SVG
+            let mimeTypeText = file.mimeType;
+            let mimeTypeColorClass = 'text-secondary'; // Para el color del texto
+
+            // --- Definición de Íconos SVG Comunes ---
+            
+            // Ícono de HOJAS DE CÁLCULO (Google Sheets)
+            const sheetsSvg = `<svg height="18" width="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="align-middle me-2" fill="currentColor" style="color:#34A853;"><title>Hojas de cálculo de Google</title><path d="M14.222 0H1.778C.8 0 .008.8.008 1.778L0 4.444v9.778C0 15.2.8 16 1.778 16h12.444C15.2 16 16 15.2 16 14.222V1.778C16 .8 15.2 0 14.222 0zm0 7.111h-7.11v7.111H5.332v-7.11H1.778V5.332h3.555V1.778h1.778v3.555h7.111v1.778z"></path></svg>`;
+
+            // Ícono de CARPETA (Google Drive Folder)
+            const folderSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="align-middle me-2" fill="currentColor" style="color:#FBBC04;"><title>Carpeta de Google Drive</title><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"></path></svg>`;
+
+            // Ícono de PDF (Ejemplo genérico, puedes usar uno específico si lo tienes)
+            const pdfSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="align-middle me-2" fill="currentColor" style="color:#EA4335;"><title>Documento PDF</title><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"></path></svg>`;
+            
+            // Ícono de Documento (Google Docs o Word)
+            const docSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="align-middle me-2" fill="currentColor" style="color:#4285F4;"><title>Documento de Google</title><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2.5L18.5 9H13V4.5zM16 19H8v-2h8v2zm0-4H8v-2h8v2zm-3-6H8V8h5v1z"></path></svg>`;
+
+            // Ícono Genérico (Default)
+            const defaultSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="align-middle me-2" fill="currentColor" style="color:#70757A;"><title>Archivo Genérico</title><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"></path></svg>`;
+
+
+            // --- Lógica de Asignación ---
+
+            if (file.mimeType.includes('spreadsheet')) {
+                mimeTypeSvg = sheetsSvg;
+                mimeTypeText = 'Hoja de Cálculo';
+            } else if (file.mimeType.includes('pdf')) {
+                mimeTypeSvg = pdfSvg;
+                mimeTypeText = 'PDF';
+            } else if (file.mimeType === 'application/vnd.google-apps.folder') {
+                mimeTypeSvg = folderSvg;
+                mimeTypeText = 'Carpeta';
+            } else if (file.mimeType.includes('document')) {
+                 mimeTypeSvg = docSvg;
+                 mimeTypeText = 'Documento';
+            } else if (file.mimeType.includes('image/')) {
+                 mimeTypeSvg = defaultSvg; // Usar el genérico o buscar uno de imagen si lo tienes
+                 mimeTypeText = 'Imagen';
+                 mimeTypeColorClass = 'text-info';
+            } else {
+                mimeTypeSvg = defaultSvg;
+            }
+        %>
+        
+        <span title="<%= file.mimeType %>">
+            <%- mimeTypeSvg %> 
+
+            <span class="<%= mimeTypeColorClass %> text-custom-small d-none d-sm-inline"><%= mimeTypeText %></span>
+        </span>
+    </td>
+    <td>
+                                    <% if (file.webViewLink) { %>
+                                        <a href="<%= file.webViewLink %>" target="_blank" class="link-info">Abrir</a>
+                                    <% } else { %>
+                                        <span class="text-muted">N/A</span>
+                                    <% } %>
+                                </td>
+    <td>
+    </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else if (query || folderId) { %>
+            <div class="alert alert-warning text-center mt-4" role="alert">
+                No se encontraron archivos que coincidan con los criterios de búsqueda.
+            </div>
+        <% } else { %>
+            <div class="alert alert-info text-center mt-4" role="alert">
+                Ingresa un término de búsqueda o un ID de carpeta para comenzar.
+            </div>
+        <% } %>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
