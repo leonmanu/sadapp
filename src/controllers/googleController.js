@@ -10,7 +10,7 @@ export const handleGoogleAuth = (req, res) => {
         
         // 1. Usar ALL_SCOPES para incluir permisos de Drive/Sheets Y de Perfil.
         const authUrl = oAuth2Client.generateAuthUrl({
-            access_type: 'offline',
+            access_type: 'offline',
             scope: googleService.ALL_SCOPES // <-- CORRECTO
         });
         res.redirect(authUrl);
@@ -37,7 +37,7 @@ export const handleGoogleCallback = async (req, res) => {
         // Redirigir a la página principal de búsqueda
         res.redirect('/drive/search'); 
     } catch (err) {
-        res.status(500).render('pages/error', { error: `Error al intercambiar token o cargar perfil: ${err.message}`, title: 'Error de Token' });
+        res.status(500).render('/error', { error: `Error al intercambiar token o cargar perfil: ${err.message}`, title: 'Error de Token' });
     }
 };
 
@@ -62,8 +62,8 @@ export const searchDrive = async (req, res) => {
         });
 
     } catch (err) {
-        // En caso de error, renderiza una vista de error (asumiendo que views/pages/error.ejs existe)
-        res.status(500).render('pages/error', { 
+        // En caso de error, renderiza una vista de error (asumiendo que views/error.ejs existe)
+        res.status(500).render('/error', { 
             error: `Error en búsqueda: ${err.message}. ${!req.session.tokens ? 'Por favor, autentíquese de nuevo.' : ''}`, 
             title: 'Error de Drive' 
         });
