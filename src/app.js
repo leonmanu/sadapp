@@ -53,7 +53,7 @@ app.post('/login', (req, res) => {
 
 app.get('/', (req, res) => {
     // Servir la página de inicio (asumiendo que index_dark.html o similar está en la raíz)
-    res.sendFile(path.join(__dirname, '..', 'index_dark.html'));
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
 
