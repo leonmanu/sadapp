@@ -3,8 +3,6 @@ import app from './src/app.js';
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    // Muestra si las credenciales están disponibles
-    console.log(`CLIENT_ID disponible: ${!!process.env.CLIENT_ID}`); 
+    console.log(`Servidor corriendo en http://localhost:${PORT}`)
 });
 
