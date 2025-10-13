@@ -62,7 +62,7 @@ export const searchDrive = async (req, res) => {
 
     } catch (err) {
         // En caso de error, renderiza una vista de error (asumiendo que views/error.ejs existe)
-        res.status(500).render('pages/, { 
+        res.status(500).render('pages/error', { 
             error: `Error en búsqueda: ${err.message}. ${!req.session.tokens ? 'Por favor, autentíquese de nuevo.' : ''}`, 
             title: 'Error de Drive' 
         });
