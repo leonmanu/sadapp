@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, '..')));
 // Configuración del Motor de Plantillas EJS
 // ----------------------------------------------------
 // Apunta a la carpeta 'views' en la raíz del proyecto
-app.set("views", path.join(__dirname, "/views"));
+app.set('views', path.join(process.cwd(), 'src', 'views'));
 app.set('view engine', 'ejs');
 
 // Session
