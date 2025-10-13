@@ -24,12 +24,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Configuración de Archivos Estáticos (sirve toda la carpeta raíz del proyecto)
 app.use(express.static(path.join(__dirname, '..')));
-app.use(express.static(path.join(__dirname, 'public'))); // Opcional: servir una carpeta 'public' dentro de 'src'
+app.use(express.static(path.join(__dirname, '/public'))); // Opcional: servir una carpeta 'public' dentro de 'src'
 
 // Configuración del Motor de Plantillas EJS
 // ----------------------------------------------------
 // SOLUCIÓN AL ERROR EN RENDER: Usamos process.cwd() para encontrar la ruta absoluta 'src/views'
-app.set('views', path.join(process.cwd(), 'src', 'views')); 
+app.set("views", path.join(__dirname, "/views"))
 app.set('view engine', 'ejs');
 
 // Session
