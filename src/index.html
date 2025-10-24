@@ -1,98 +1,121 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google API Manager - Dark Mode</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <!-- Iconos de Bootstrap -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Google Drive Manager - Acceso</title>
+    <!-- Carga de Tailwind CSS para el styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración para usar la fuente Inter y el modo oscuro por defecto -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-500': '#4f46e5', // Indigo
+                        'primary-600': '#4338ca', 
+                        'background-dark': '#111827', // Gray-900
+                        'card-dark': '#1f2937',     // Gray-800
+                        'text-light': '#f3f4f6',    // Gray-100
+                    }
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+            }
+        }
+    </script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        /* Estilo para integrar iconos de Google, similar a Bootstrap Icons */
+        .google-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            vertical-align: middle;
+            margin-right: 0.5rem;
         }
-        .container {
-            max-width: 900px;
-        }
-        .card {
-            border-radius: 12px;
-        }
+        /* Clase para el efecto de sombra y hover del botón */
         .auth-button {
             transition: all 0.2s ease-in-out;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .auth-button:hover {
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-            transform: translateY(-1px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
         }
     </style>
 </head>
-<body class="bg-dark text-white">
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-md-6 mb-4 mb-md-0">
-                <h1 class="mb-3 text-primary">Google Drive & Sheets Manager</h1>
-                <p class="mb-4 text-secondary">Esta aplicación permite buscar archivos en Google Drive y manipular datos en Google Sheets.</p>
+<!-- Fondo oscuro, texto claro y fuente Inter -->
+<body class="bg-background-dark text-text-light min-h-screen flex items-center justify-center p-4">
 
-                <section id="auth-section" class="card text-bg-dark border-secondary p-4 mb-4">
-                    <h2 class="card-title text-success fs-4">Paso 1: Autenticación con Google</h2>
-                    <p class="card-text small text-secondary">Inicia sesión con tu cuenta de Google para otorgar acceso a Drive y Sheets (solo lectura/escritura básica).</p>
+    <div class="w-full max-w-2xl">
+        
+        <!-- Tarjeta Principal de Bienvenida y Acceso -->
+        <div class="bg-card-dark p-8 md:p-10 rounded-xl shadow-2xl border border-gray-700">
+            
+            <header class="text-center mb-8">
+                <h1 class="text-4xl font-extrabold text-primary-500 mb-2">
+                    Buscador Inteligente de Documentos
+                </h1>
+                <p class="text-gray-400 text-lg">
+                    Acceso a Contenido Indexado en Google Drive
+                </p>
+            </header>
+            
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold text-text-light mb-4 border-b border-gray-700 pb-2">
+                    Naturaleza de la Búsqueda
+                </h2>
+                
+                <ul class="space-y-4 text-gray-300">
+                    <li class="flex items-start">
+                        <span class="text-primary-500 font-bold text-xl mr-3 flex-shrink-0">1.</span>
+                        <p>
+                            **Búsqueda en Contenido Diverso:** La herramienta utiliza la API de Drive para escanear tanto el nombre como el **contenido interno** de diversos formatos de archivo (PDFs, DOCX, hojas de cálculo, etc.).
+                        </p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-primary-500 font-bold text-xl mr-3 flex-shrink-0">2.</span>
+                        <p>
+                            **Desafío del OCR (Documentos Ilegibles):** La búsqueda por contenido puede fallar en documentos escaneados o muy antiguos, ya que el motor de Google no pudo generar una capa de texto indexable (OCR). La aplicación está diseñada para **identificar** estos documentos como "ilegibles".
+                        </p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-primary-500 font-bold text-xl mr-3 flex-shrink-0">3.</span>
+                        <p>
+                            **Cómo Optimizar su Búsqueda:**
+                            <ul class="list-disc ml-6 mt-1 text-gray-400 text-sm space-y-1">
+                                <li>Use la barra de búsqueda para términos clave por **nombre o contenido**.</li>
+                                <li>Preste atención a los archivos marcados como **"Ilegibles"** en los resultados.</li>
+                                <li>Para estos archivos, use la opción **"Re-indexar"** que fuerza a Google a intentar el proceso de OCR nuevamente para que el contenido sea buscable.</li>
+                            </ul>
+                        </p>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Botón de Acceso a la Búsqueda (No inicia OAuth directamente) -->
+            <div class="text-center pt-6 border-t border-gray-700">
+                <p class="text-lg font-medium text-gray-400 mb-4">
+                    Haz clic para acceder al buscador de Drive:
+                </p>
+                
+                <!-- El href apunta a la ruta de búsqueda, donde el middleware de Express verificará la autenticación -->
+                <a href="/drive/search" 
+                   class="auth-button inline-flex items-center justify-center px-8 py-3 
+                          border border-transparent text-base font-medium rounded-lg 
+                          text-white bg-primary-500 hover:bg-primary-600 
+                          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-card-dark">
                     
-                    <!-- Botón de Inicio de Sesión de Google -->
-                    <a href="/auth/google" class="btn btn-primary auth-button d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-google"></i>
-                        Iniciar Sesión con Google
-                    </a>
-                    <p class="mt-3"><small class="text-secondary">Si ya iniciaste sesión, puedes proceder a la búsqueda.</small></p>
-                </section>
-
-                <!-- Se eliminó la sección 'Iniciar sesión (Demo Local)' -->
-
+                    <!-- Icono SVG de Google para la estética -->
+                   
+                    
+                    Acceder
+                </a>
             </div>
-
-            <div class="col-md-6">
-                <section id="search-section" class="card text-bg-dark border-secondary">
-                    <div class="card-body">
-                        <h2 class="card-title fs-4 text-success">Paso 2: Búsqueda en Google Drive</h2>
-                        <p class="small text-secondary">Busca por nombre o por contenido (PDFs indexados) en tu Drive.</p>
-                        
-                        <!-- Formulario de búsqueda -->
-                        <form method="get" action="/drive/search" id="driveSearchForm">
-                            <div class="mb-3">
-                                <label for="q" class="form-label">Término de búsqueda</label>
-                                <input class="form-control" type="text" id="q" name="q" placeholder="palabra a buscar" required />
-                            </div>
-                            <!-- Se eliminó el campo Folder ID -->
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-success" type="submit">Buscar en Drive</button>
-                                <button class="btn btn-outline-secondary" type="reset">Limpiar</button>
-                            </div>
-                        </form>
-                        
-                        <p class="mt-3"><small class="text-secondary">Los resultados se mostrarán en formato de tabla con EJS. El backend forzará el inicio de sesión si no estás autenticado.</small></p>
-                    </div>
-                </section>
-            </div>
+            
         </div>
+        
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-C6Uq538z1tC9D5O2F5O9z8Fz5J1B7F0E4z9P6tA9e5yE3Q1z2U7z1V8v5Z5C6G8A" crossorigin="anonymous"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const driveForm = document.getElementById('driveSearchForm');
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // La lógica de ocultar/mostrar el formulario se puede quitar ya que el backend
-            // fuerza la redirección a /auth/google si la sesión no existe.
-            
-            // Si quieres añadir un manejo visual para el éxito de la autenticación:
-            if (urlParams.get('auth_success') === 'true') {
-                console.log('Autenticación exitosa detectada.');
-                // Puedes mostrar un mensaje temporal aquí si lo deseas.
-            }
-        });
-    </script>
 </body>
 </html>
