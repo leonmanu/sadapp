@@ -80,26 +80,25 @@
         <h1 class="visually-hidden"><%= title %></h1> 
         <div class="p-3 mb-4 rounded border border-secondary bg-dark">
             <form action="/drive/search" method="GET" class="d-flex flex-wrap align-items-center">
-                <input type="hidden" name="folderId" value="<%= folderId || '1CvG23jMIqb-aXDQ16JtMoqH0XSqw0ma7' %>">
                 <input type="text" name="q" placeholder="Buscar por nombre o contenido (ej: Informe)" value="<%= query %>" class="form-control me-2 mb-2 mb-md-0 flex-grow-1" style="max-width: 400px;">
                 <button type="submit" class="btn btn-primary">Buscar en Drive</button>
             </form>
             
             <!-- Botón de Búsqueda Avanzada agregado aquí -->
-            <div class="mt-3 text-end">
+            <!-- <div class="mt-3 text-end">
                 <a href="/drive/advanced-search" class="btn btn-sm btn-outline-info" title="Configurar filtros de búsqueda adicionales (tipo, fecha, propietario)">
                     <i class="fas fa-filter me-1"></i> Búsqueda Avanzada
                 </a>
-            </div>
+            </div> -->
             <!-- Fin del Botón de Búsqueda Avanzada -->
         </div>
 
         <% if (files && files.length > 0) { %>
             <h2 class="h4 mt-4 mb-3">
                 Archivos Encontrados: (<%= files.length %>)
-                <span class="ms-2 badge bg-info" title="PDF sin texto indexado = archivos que necesitan OCR">
+                <!-- <span class="ms-2 badge bg-info" title="PDF sin texto indexado = archivos que necesitan OCR">
                     <i class="fas fa-info-circle"></i> PDF sin texto = necesita OCR
-                </span>
+                </span> -->
             </h2>
             <div class="table-responsive">
                 <table class="table table-dark table-striped table-hover">
@@ -109,7 +108,7 @@
                             <th scope="col">Tipo</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Ver</th>
-                            <th scope="col">Acción</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -118,58 +117,94 @@
                                 <td><%= file.name %></td>
                                 
                                 <td>
-                                    <% 
-                                        let mimeTypeSvg = ''; // Inicializamos la variable SVG
-                                        let mimeTypeText = file.mimeType;
-                                        let mimeTypeColorClass = 'text-secondary'; // Para el color del texto
+    <% 
+        let mimeTypeSvg = ''; // Inicializamos la variable SVG (o ícono FA)
+        let mimeTypeText = file.mimeType;
+        let mimeTypeColorClass = 'text-secondary'; // Color por defecto
 
-                                        // --- Definición de Íconos SVG Comunes ---
-                                        
-                                        // Ícono de HOJAS DE CÁLCULO (Google Sheets)
-                                        const sheetsSvg = `<svg height="18" width="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#34A853;"><title>Hojas de cálculo de Google</title><path d="M14.222 0H1.778C.8 0 .008.8.008 1.778L0 4.444v9.778C0 15.2.8 16 1.778 16h12.444C15.2 16 16 15.2 16 14.222V1.778C16 .8 15.2 0 14.222 0zm0 7.111h-7.11v7.111H5.332v-7.11H1.778V5.332h3.555V1.778h1.778v3.555h7.111v1.778z"></path></svg>`;
+        // --- Definición de Íconos SVG Comunes (Para tipos de Google) ---
+        
+        // Ícono de HOJAS DE CÁLCULO (Google Sheets)
+        const sheetsSvg = `<svg height="18" width="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#34A853;"><title>Hojas de cálculo de Google</title><path d="M14.222 0H1.778C.8 0 .008.8.008 1.778L0 4.444v9.778C0 15.2.8 16 1.778 16h12.444C15.2 16 16 15.2 16 14.222V1.778C16 .8 15.2 0 14.222 0zm0 7.111h-7.11v7.111H5.332v-7.11H1.778V5.332h3.555V1.778h1.778v3.555h7.111v1.778z"></path></svg>`;
 
-                                        // Ícono de CARPETA (Google Drive Folder)
-                                        const folderSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#FBBC04;"><title>Carpeta de Google Drive</title><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"></path></svg>`;
+        // Ícono de CARPETA (Google Drive Folder)
+        const folderSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#FBBC04;"><title>Carpeta de Google Drive</title><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"></path></svg>`;
 
-                                        // Ícono de PDF (Ejemplo genérico, puedes usar uno específico si lo tienes)
-                                        const pdfSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#EA4335;"><title>Documento PDF</title><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"></path></svg>`;
-                                        
-                                        // Ícono de Documento (Google Docs o Word)
-                                        const docSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#4285F4;"><title>Documento de Google</title><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2.5L18.5 9H13V4.5zM16 19H8v-2h8v2zm0-4H8v-2h8v2zm-3-6H8V8h5v1z"></path></svg>`;
+        // Ícono de PDF
+        const pdfSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#EA4335;"><title>Documento PDF</title><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"></path></svg>`;
+        
+        // Ícono de Documento de Google
+        const docGoogleSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#4285F4;"><title>Documento de Google</title><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2.5L18.5 9H13V4.5zM16 19H8v-2h8v2zm0-4H8v-2h8v2zm-3-6H8V8h5v1z"></path></svg>`;
 
-                                        // Ícono Genérico (Default)
-                                        const defaultSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#70757A;"><title>Archivo Genérico</title><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"></path></svg>`;
+        // Ícono Genérico (Default)
+        const defaultSvg = `<svg height="18" width="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-icon" fill="currentColor" style="color:#70757A;"><title>Archivo Genérico</title><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"></path></svg>`;
 
 
-                                        // --- Lógica de Asignación ---
+        // --- Definición de Íconos de Font Awesome (Para tipos de Office e Imágenes) ---
 
-                                        if (file.mimeType.includes('spreadsheet')) {
-                                            mimeTypeSvg = sheetsSvg;
-                                            mimeTypeText = 'Hoja de Cálculo';
-                                        } else if (file.mimeType.includes('pdf')) {
-                                            mimeTypeSvg = pdfSvg;
-                                            mimeTypeText = 'PDF';
-                                        } else if (file.mimeType === 'application/vnd.google-apps.folder') {
-                                            mimeTypeSvg = folderSvg;
-                                            mimeTypeText = 'Carpeta';
-                                        } else if (file.mimeType.includes('document')) {
-                                             mimeTypeSvg = docSvg;
-                                             mimeTypeText = 'Documento';
-                                        } else if (file.mimeType.includes('image/')) {
-                                             mimeTypeSvg = defaultSvg; // Usar el genérico o buscar uno de imagen si lo tienes
-                                             mimeTypeText = 'Imagen';
-                                             mimeTypeColorClass = 'text-info';
-                                        } else {
-                                            mimeTypeSvg = defaultSvg;
-                                        }
-                                    %>
-                                    
-                                    <span title="<%= file.mimeType %>">
-                                        <%- mimeTypeSvg %> 
+        // Función para crear un ícono de Font Awesome
+        const faIcon = (iconClass, title, color = '#70757A') => 
+            `<i class="fas ${iconClass} fa-fw svg-icon" style="color:${color};" title="${title}"></i>`;
 
-                                        <span class="<%= mimeTypeColorClass %> text-custom-small d-none d-sm-inline"><%= mimeTypeText %></span>
-                                    </span>
-                                </td>
+        const excelFa = faIcon('fa-file-excel', 'Microsoft Excel', '#217346');
+        const wordFa = faIcon('fa-file-word', 'Microsoft Word', '#2B579A');
+        const imageFa = faIcon('fa-file-image', 'Imagen', '#9E9E9E');
+
+
+        // --- Lógica de Asignación (Asegúrate de que la lógica de Google Apps vaya primero) ---
+
+        if (file.mimeType === 'application/vnd.google-apps.spreadsheet') {
+            // Google Sheets
+            mimeTypeSvg = sheetsSvg;
+            mimeTypeText = 'Hoja de Cálculo (G)';
+            mimeTypeColorClass = 'text-success';
+        } else if (file.mimeType === 'application/vnd.google-apps.document') {
+            // Google Docs
+            mimeTypeSvg = docGoogleSvg;
+            mimeTypeText = 'Documento (G)';
+            mimeTypeColorClass = 'text-primary';
+        } else if (file.mimeType.includes('pdf')) {
+            // PDF
+            mimeTypeSvg = pdfSvg;
+            mimeTypeText = 'PDF';
+            mimeTypeColorClass = 'text-danger';
+        } else if (file.mimeType === 'application/vnd.google-apps.folder') {
+            // Carpeta
+            mimeTypeSvg = folderSvg;
+            mimeTypeText = 'Carpeta';
+            mimeTypeColorClass = 'text-warning';
+
+        // --- Nuevas Detecciones (Excel, Word, Imágenes) ---
+
+        } else if (file.mimeType.includes('spreadsheet') || file.mimeType.includes('excel')) {
+            // Microsoft Excel (.xlsx, .xls)
+            mimeTypeSvg = excelFa;
+            mimeTypeText = 'Excel';
+            mimeTypeColorClass = 'text-success';
+        } else if (file.mimeType.includes('wordprocessing') || file.mimeType.includes('word')) {
+            // Microsoft Word (.docx, .doc)
+            mimeTypeSvg = wordFa;
+            mimeTypeText = 'Word';
+            mimeTypeColorClass = 'text-primary';
+        } else if (file.mimeType.includes('image/')) {
+            // Imágenes (jpg, png, gif, etc.)
+            mimeTypeSvg = imageFa;
+            mimeTypeText = 'Imagen';
+            mimeTypeColorClass = 'text-info';
+        } else {
+            // Por defecto
+            mimeTypeSvg = defaultSvg;
+            mimeTypeText = 'Archivo Genérico';
+            mimeTypeColorClass = 'text-muted';
+        }
+    %>
+    
+    <span title="<%= file.mimeType %>">
+        <%- mimeTypeSvg %> 
+
+        <span class="<%= mimeTypeColorClass %> text-custom-small d-none d-sm-inline"><%= mimeTypeText %></span>
+    </span>
+</td>
                                 <td>
                                     <% if (file.mimeType.includes('pdf')) { %>
                                         <% if (!file.hasReadableText) { %>
@@ -199,26 +234,7 @@
                                     <% } %>
                                 </td>
                                 <td>
-                                    <!-- Formulario para POST a la ruta de re-indexación -->
-                                    <form action="/drive/reindex/<%= file.id %>" method="POST" class="d-inline">
-                                        <input type="hidden" name="searchTerm" value="<%= query %>">
-                                        
-                                        <% if (file.mimeType.includes('pdf') && !file.hasReadableText) { %>
-                                            <!-- Botón OCR destacado para PDFs sin texto -->
-                                            <button type="submit" class="btn btn-sm btn-warning" 
-                                                    title="Este PDF necesita procesamiento OCR para ser buscable">
-                                                <i class="fas fa-sync-alt"></i> Procesar OCR
-                                            </button>
-                                        <% } else if (file.mimeType !== 'application/vnd.google-apps.folder') { %>
-                                            <!-- Botón OCR normal para otros archivos -->
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary" 
-                                                    title="Forzar reprocesamiento del contenido">
-                                                <i class="fas fa-sync-alt"></i> OCR
-                                            </button>
-                                        <% } else { %>
-                                            <span class="text-secondary text-custom-small">N/A</span>
-                                        <% } %>
-                                    </form>
+                                    
                                 </td>
                             </tr>
                         <% }); %>

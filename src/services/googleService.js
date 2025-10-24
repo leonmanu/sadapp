@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 1. Define la carpeta fija (ID proporcionado por el usuario)
-const FIXED_PDF_FOLDER_ID = '1CvG23jMIqb-aXDQ16JtMoqH0XSqw0ma7';
+// const FIXED_PDF_FOLDER_ID = '1CvG23jMIqb-aXDQ16JtMoqH0XSqw0ma7';
 
 // Scopes usados por la aplicación
 export const ALL_SCOPES = [
@@ -98,7 +98,7 @@ export function buildDriveQuery(params) {
 
     // Si no hay término de búsqueda pero hay tipo de archivo, filtrar por tipo
     if (params.fileType === 'pdf' || !params.q) {
-        queryParts.push(`mimeType = 'application/pdf'`);
+        queryParts.push(`mimeType != 'application/vnd.google-apps.folder'`);
     }
 
     const finalQuery = queryParts.join(' and ');
@@ -162,7 +162,7 @@ export async function searchDriveFiles(req) {
 
     // Si no se proporciona folderId en la petición, por defecto usar la carpeta fija configurada
     if (!req.query.folderId && !queryParams.folderId) {
-        queryParams.folderId = FIXED_PDF_FOLDER_ID;
+        queryParams.folderId = '';
     }
 
     if (fileType === 'pdf') {
@@ -179,6 +179,7 @@ export async function searchDriveFiles(req) {
         fields: 'files(id, name, mimeType, parents, webViewLink, description, capabilities, hasThumbnail, thumbnailLink)',
         includeItemsFromAllDrives: true,
         supportsAllDrives: true,
+        pageSize: 1000,
     };
 
     // Solo ordenar por nombre si no estamos buscando por contenido
@@ -194,7 +195,7 @@ export async function searchDriveFiles(req) {
     const filesWithOCRInfo = await Promise.all(files.map(async file => {
         let hasReadableText = true;
 
-        if (file.mimeType === 'application/pdf') {
+        
             if (queryParams.q && queryParams.q.trim()) {
                 // Si estamos buscando por contenido y el archivo aparece, tiene texto
                 hasReadableText = true;
@@ -238,7 +239,7 @@ export async function searchDriveFiles(req) {
                     hasReadableText = false;
                 }
             }
-        }
+        
 
         return {
             ...file,
@@ -249,4 +250,85 @@ export async function searchDriveFiles(req) {
     }));
 
     return filesWithOCRInfo;
+}
+
+/**
+ * Obtiene el contenido de todas las carpetas que fueron compartidas con
+ * la cuenta de servicio (y de sus subcarpetas) en forma de árbol.
+ *
+ * Parámetros opcionales por query string:
+ * - maxDepth: profundidad máxima de recursión (por defecto 5)
+ * - maxItems: número máximo total de items a procesar por carpeta (por defecto 2000)
+ *
+ * Devuelve un array de folders con su contenido recursivo.
+ */
+export async function getSharedFoldersContents(req) {
+    const authClient = await getAuthClient(req);
+    const drive = google.drive({ version: 'v3', auth: authClient });
+
+    const maxDepth = req && req.query && req.query.maxDepth ? parseInt(req.query.maxDepth, 10) : 5;
+    const maxItems = req && req.query && req.query.maxItems ? parseInt(req.query.maxItems, 10) : 2000;
+
+    // Lista los hijos de una carpeta recursivamente
+    async function listChildren(folderId, depth, seen) {
+        if (depth > maxDepth) return [];
+        if (seen.size >= maxItems) return [];
+
+        const items = [];
+        let pageToken = null;
+        do {
+            const res = await drive.files.list({
+                q: `\'${folderId}\' in parents and trashed = false`,
+                fields: 'nextPageToken, files(id, name, mimeType, webViewLink, size, parents)',
+                pageSize: 500,
+                pageToken,
+                includeItemsFromAllDrives: true,
+                supportsAllDrives: true,
+            });
+
+            const files = res.data.files || [];
+            for (const f of files) {
+                if (seen.size >= maxItems) break;
+                seen.add(f.id);
+
+                if (f.mimeType === 'application/vnd.google-apps.folder') {
+                    const children = await listChildren(f.id, depth + 1, seen);
+                    items.push({ ...f, isFolder: true, children });
+                } else {
+                    items.push({ ...f, isFolder: false });
+                }
+            }
+
+            pageToken = res.data.nextPageToken;
+        } while (pageToken && seen.size < maxItems);
+
+        return items;
+    }
+
+    // Listar todas las carpetas compartidas con la cuenta (sharedWithMe)
+    const sharedFolders = [];
+    let pageToken = null;
+    do {
+        const res = await drive.files.list({
+            q: "mimeType = 'application/vnd.google-apps.folder' and sharedWithMe = true and trashed = false",
+            fields: 'nextPageToken, files(id, name, mimeType, webViewLink, size)',
+            pageSize: 100,
+            pageToken,
+            includeItemsFromAllDrives: true,
+            supportsAllDrives: true,
+        });
+
+        const folders = res.data.files || [];
+        for (const folder of folders) {
+            // usamos un set para evitar ciclos y controlar límite de items
+            const seen = new Set();
+            seen.add(folder.id);
+            const children = await listChildren(folder.id, 1, seen);
+            sharedFolders.push({ ...folder, isFolder: true, children });
+        }
+
+        pageToken = res.data.nextPageToken;
+    } while (pageToken);
+
+    return sharedFolders;
 }
