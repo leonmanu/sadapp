@@ -27,19 +27,48 @@ export async function getAuthClient(req) {
 
     try {
         const scopes = ['https://www.googleapis.com/auth/drive.readonly'];
-
-        // Preferir archivo service-account.json en la raíz del proyecto si existe
-        const saPath = path.join(process.cwd(), 'service-account.json');
         let auth;
-        if (fs.existsSync(saPath)) {
-            // Usar keyFilename para que GoogleAuth cargue la clave directamente
-            auth = new GoogleAuth({ keyFilename: saPath, scopes });
-        } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-            // Si el usuario configuró la variable de entorno, dejar que GoogleAuth la use
+
+        // 1. Intentar usar las credenciales desde variable de entorno GOOGLE_SERVICE_ACCOUNT
+        if (process.env.GOOGLE_SERVICE_ACCOUNT) {
+            try {
+                const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+                auth = new GoogleAuth({
+                    credentials,
+                    scopes
+                });
+                console.log('Usando credenciales desde variable de entorno GOOGLE_SERVICE_ACCOUNT');
+            } catch (e) {
+                console.error('Error al parsear GOOGLE_SERVICE_ACCOUNT:', e.message);
+            }
+        }
+
+        // 2. Si no hay variable de entorno, intentar usar el archivo local
+        if (!auth) {
+            const saPath = path.join(process.cwd(), 'service-account.json');
+            if (fs.existsSync(saPath)) {
+                try {
+                    const credentials = JSON.parse(fs.readFileSync(saPath, 'utf8'));
+                    auth = new GoogleAuth({
+                        credentials,
+                        scopes
+                    });
+                    console.log('Usando credenciales desde service-account.json local');
+                } catch (e) {
+                    console.error('Error al leer service-account.json:', e.message);
+                }
+            }
+        }
+
+        // 3. Último recurso: intentar usar GOOGLE_APPLICATION_CREDENTIALS
+        if (!auth && process.env.GOOGLE_APPLICATION_CREDENTIALS) {
             auth = new GoogleAuth({ scopes });
-        } else {
-            // Fallback: intentar cargar credenciales predeterminadas (por ejemplo en GCE)
-            auth = new GoogleAuth({ scopes });
+            console.log('Usando credenciales desde GOOGLE_APPLICATION_CREDENTIALS');
+        }
+
+        // Si no se pudo configurar la autenticación, lanzar error
+        if (!auth) {
+            throw new Error('No se encontraron credenciales válidas. Configura GOOGLE_SERVICE_ACCOUNT o proporciona service-account.json');
         }
 
         authClientInstance = await auth.getClient();
